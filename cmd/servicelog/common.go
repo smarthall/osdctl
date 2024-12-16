@@ -3,16 +3,18 @@ package servicelog
 import (
 	"encoding/json"
 	"fmt"
+	"time"
+
 	sdk "github.com/openshift-online/ocm-sdk-go"
 	cmv1 "github.com/openshift-online/ocm-sdk-go/clustersmgmt/v1"
 	v1 "github.com/openshift-online/ocm-sdk-go/servicelogs/v1"
 	"github.com/openshift/osdctl/internal/servicelog"
 	"github.com/openshift/osdctl/pkg/utils"
-	"time"
 )
 
 var (
 	userParameterNames, userParameterValues []string
+	overrideMap                             map[string]string
 )
 
 const (
