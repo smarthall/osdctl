@@ -14,7 +14,6 @@ import (
 
 var (
 	userParameterNames, userParameterValues []string
-	overrideMap                             map[string]string
 )
 
 const (

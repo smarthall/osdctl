@@ -2,6 +2,7 @@ package servicelog
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -133,8 +134,8 @@ func (o *PostCmdOptions) Run() error {
 		return err
 	}
 
-	o.parseUserParameters()   // parse all the '-p' user flags
-	err := o.parseOverrides() // parse all the '-o' flags
+	o.parseUserParameters()                // parse all the '-p' user flags
+	overrideMap, err := o.parseOverrides() // parse all the '-o' flags
 	if err != nil {
 		log.Fatalf("Error parsing overrides: %s", err)
 	}
@@ -148,7 +149,7 @@ func (o *PostCmdOptions) Run() error {
 	}
 
 	// Replace any overrides
-	err = o.applyOverrides()
+	err = o.applyOverrides(overrideMap)
 	if err != nil {
 		log.Fatalf("Could not apply overrides: %s", err)
 	}
@@ -353,27 +354,28 @@ func (o *PostCmdOptions) parseUserParameters() {
 }
 
 // parseOverides parses all the '-o FOO=BAR' overrides which replace items in the final JSON document
-func (o *PostCmdOptions) parseOverrides() error {
-	overrideMap = make(map[string]string)
+func (o *PostCmdOptions) parseOverrides() (map[string]string, error) {
+	usageMessageError := errors.New("wrong syntax of '-r' flag. please use it like this: '-o FOO=BAR'")
+	overrideMap := make(map[string]string)
 
 	for _, v := range o.Overrides {
 		if !strings.Contains(v, "=") {
-			return fmt.Errorf("wrong syntax of '-r' flag. please use it like this: '-o FOO=BAR'")
+			return nil, usageMessageError
 		}
 
 		param := strings.SplitN(v, "=", 2)
 		if param[0] == "" || param[1] == "" {
-			return fmt.Errorf("wrong syntax of '-r' flag. please use it like this: '-o FOO=BAR'")
+			return nil, usageMessageError
 		}
 
 		overrideMap[param[0]] = param[1]
 	}
 
-	return nil
+	return overrideMap, nil
 }
 
 // applyOverrides applies the overrides to the Message by JSON tag
-func (o *PostCmdOptions) applyOverrides() error {
+func (o *PostCmdOptions) applyOverrides(overrideMap map[string]string) error {
 	for overrideKey, overrideValue := range overrideMap {
 		err := o.overrideField(overrideKey, overrideValue)
 		if err != nil {

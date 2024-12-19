@@ -68,7 +68,7 @@ var _ = Describe("Test posting service logs", func() {
 
 	Context("parsing overrides", func() {
 		It("parses correctly", func() {
-			err := options.parseOverrides()
+			overrideMap, err := options.parseOverrides()
 
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(overrideMap).To(HaveKey("description"))
@@ -82,7 +82,7 @@ var _ = Describe("Test posting service logs", func() {
 				"THISDOESNOTHAVEANEQUALS",
 			}
 
-			err := options.parseOverrides()
+			_, err := options.parseOverrides()
 
 			Expect(err).Should(HaveOccurred())
 		})
@@ -92,7 +92,7 @@ var _ = Describe("Test posting service logs", func() {
 				"=VALUE",
 			}
 
-			err := options.parseOverrides()
+			_, err := options.parseOverrides()
 
 			Expect(err).Should(HaveOccurred())
 		})
@@ -102,7 +102,7 @@ var _ = Describe("Test posting service logs", func() {
 				"KEY=",
 			}
 
-			err := options.parseOverrides()
+			_, err := options.parseOverrides()
 
 			Expect(err).Should(HaveOccurred())
 		})
@@ -110,15 +110,22 @@ var _ = Describe("Test posting service logs", func() {
 
 	Context("full override parsing", func() {
 		It("correctly applies valid rules", func() {
-			err := options.applyOverrides()
+			overrideMap := map[string]string{
+				"internal_only": "true",
+				"summary":       "Test Summary",
+			}
+
+			err := options.applyOverrides(overrideMap)
 
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
 		It("gives an error when there is an invalid rule", func() {
-			overrideMap["internal_only"] = "notboolean"
+			overrideMap := map[string]string{
+				"internal_only": "notaboolean",
+			}
 
-			err := options.applyOverrides()
+			err := options.applyOverrides(overrideMap)
 
 			Expect(err).Should(HaveOccurred())
 		})
